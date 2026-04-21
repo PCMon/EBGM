@@ -5,7 +5,8 @@
 
 ---
 
-A customizable macro based tool intended to be used for Jailbreak.
+A customizable macro based tool intended to be used for Jailbreak.  
+
 
 Tired of a slow, unoptimized and static hardcoded gunstore macro?  
 
