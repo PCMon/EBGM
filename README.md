@@ -14,4 +14,4 @@ optimized to work as fast as possible! (Times as low as **70ms** for 10 weapon l
 
 ---
 
-Even works in crew battles!
+Works on regular servers AND crew battles, and is stable on 60fps!
