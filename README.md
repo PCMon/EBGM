@@ -17,4 +17,6 @@ optimized to work as fast as possible! (Times as low as **70ms** for 10 weapon l
 
 ---
 
-Works on regular servers AND crew battles, and is stable on 60fps!
+Works on regular servers AND crew battles, and is stable on 60fps! 
+
+Settings save, so you only need to input them once, boots without any GUI afterwards, to change your settings, simply right click it in the system tray!
