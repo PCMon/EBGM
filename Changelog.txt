@@ -140,9 +140,19 @@ v2.6.6
 ## Fixes
 - Added support for Non-US keyboard layouts.
 
-v.2.6.7
+v2.6.7
 ## Changes
 - Added some Vehicle ID checks.
 ## Fixes
 - Vehicle spawning no longer breaks on multiples of six.
 - Made invalid Vehicle ID CustomGUI direct back to the correct function state.
+
+v2.6.8
+## Changes
+- Now prevents gun store macro execution when the GUI is not open.
+- Now executes the gun store macro the moment the GUI pops up, allowing a short grace period beforehand to pre-trigger the macro.
+- Now persists WASD + Shift movements after macro execution.
+- Heli AutoBuy trigger now listens regardless of held modifier keys.
+
+## Fixes
+- Gun store macro should now work when items are equipped.
