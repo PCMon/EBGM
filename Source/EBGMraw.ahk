@@ -18,7 +18,8 @@ global VehicleHotkeys := [""]
 global VehicleActive := [""]
 global VehicleCustom := [""]
 global AutoBuy := "false"
-WeaponSlots := Map("nerfpistol", 1, "nerfrevolver", 2, "pistol", 3, "shotgun", 4, "rifle", 5, "revolver", 6, "flint", 7, "ak", 8, "sword", 9, "uzi", 10, "forcefield", 11, "plasmapistol", 12, "plasmashotgun", 13, "sniper", 14, "c4", 15, "c4buy", 16, "smoke", 17, "smokebuy", 18, "grenade", 19, "grenadebuy", 20, "rpgbuy", 21, "rpg", 22, "flashlight", 23, "binoculars", 24)
+global WeaponSlots := Map("nerfpistol", 1, "nerfrevolver", 2, "pistol", 3, "shotgun", 4, "rifle", 5, "revolver", 6, "flint", 7, "ak", 8, "sword", 9, "uzi", 10, "forcefield", 11, "plasmapistol", 12, "plasmashotgun", 13, "sniper", 14, "c4", 15, "c4buy", 16, "smoke", 17, "smokebuy", 18, "grenade", 19, "grenadebuy", 20, "rpgbuy", 21, "rpg", 22, "flashlight", 23, "binoculars", 24)
+global PressedKeys := Map("W", false, "A", false, "S", false, "D", false, "Shift", false)
 
 UsesLightTheme := RegRead("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "SystemUsesLightTheme") ; get system light/darkmode preference
 Font := "Segoe UI"
@@ -123,21 +124,42 @@ if (!CheckForConfig() || !CheckForLoadouts()) { ; check if config/loadout files 
     WriteToConfig()
     WriteToLoadout()
     WriteToVehicles()
-    Hotkey("~F", HeliAutoBuy)
-    Hotkey("~B", HeliAutoBuy)
+    Hotkey("*~F", HeliAutoBuy)
+    Hotkey("*~B", HeliAutoBuy)
 }
 
 ; logic
 Main(Weapons, Nerf, *) { ; gunstore logic
     if WinActive("ahk_exe RobloxPlayerBeta.exe") {
+        attempts := 0
+        success := false
+        while success = false {
+            attempts := attempts + 1
+            if CheckForColor("WEAPONS") {
+                success := true
+            }
+            if attempts >= 10 {
+                return
+            } else if success = false {
+                Sleep 50
+            }
+        }
         WeaponSelectionArray := StrSplit(Weapons, A_Space)
+        Modifier := 1
         if ConfigLine[1] = "true" {
             SleepTime := 60
         } else {
-            SleepTime := 30
+            SleepTime := 40
+        }
+        if (GetKeyState("W", "P") || GetKeyState("A", "P") || GetKeyState("S", "P") || GetKeyState("D", "P") || GetKeyState("Shift", "P")) {
+            SleepTime := SleepTime * 1.5
         }
         TogglePlayerInputs("Disable")
-        Send "{sc2B}{DOWN}{LEFT}{LEFT}{RIGHT}{UP}{RIGHT}{RIGHT}"
+        Send "{sc2B}{DOWN}"
+        Loop 25 {
+            Send "{LEFT}"
+        }
+        Send "{RIGHT}{UP}{RIGHT}{RIGHT}"
         CurrentSlot := 1
         CurrentPage := 1
         for Weapon in WeaponSelectionArray {
@@ -1068,18 +1090,30 @@ ContactEmail(*) {
 }
 
 TogglePlayerInputs(Toggle) { ; enables or disables WASD keys to prevent macro disruption
+    global PressedKeys
     if Toggle = "Disable" {
         if WinActive("ahk_exe RobloxPlayerBeta.exe") {
-            Hotkey("W", DummyFunction)
-            Hotkey("A", DummyFunction)
-            Hotkey("S", DummyFunction)
-            Hotkey("D", DummyFunction)
+            for item in PressedKeys {
+                PressedKeys[item] := GetKeyState(item, "P")
+            }
+            Hotkey("*$W", DummyFunction)
+            Hotkey("*$A", DummyFunction)
+            Hotkey("*$S", DummyFunction)
+            Hotkey("*$D", DummyFunction)
         }
     } else if Toggle = "Enable" {
-        Hotkey("W", "Off")
-        Hotkey("A", "Off")
-        Hotkey("S", "Off")
-        Hotkey("D", "Off")
+        Hotkey("*$W", "Off")
+        Hotkey("*$A", "Off")
+        Hotkey("*$S", "Off")
+        Hotkey("*$D", "Off")
+        for item in PressedKeys {
+            if PressedKeys[item] = true {
+                if GetKeyState(item, "P") {
+                    Send "{" item " up}"
+                    Send "{" item " down}"
+                }
+            }
+        }
     }
 }
 
@@ -1155,9 +1189,8 @@ CheckForUINav() { ; checks if roblox's UI navigation feature is enabled or not
 }
 
 CheckForColor(Target, *) {
-    Speedometer := false
+    WinGetPos &X, &Y, &W, &H, "ahk_exe RobloxPlayerBeta.exe"
     if (Target = "SpeedometerInit" || Target = "Speedometer" || Target = "Nitro" || Target = "Rocket") {
-        Speedometer := true
         if Target = "SpeedometerInit" {
             Color := 0xD2425E
         } else if Target = "Speedometer" {
@@ -1167,8 +1200,27 @@ CheckForColor(Target, *) {
         } else if Target = "Rocket" {
             Color := 0x832F36
         }
-        WinGetPos &X, &Y, &W, &H, "ahk_exe RobloxPlayerBeta.exe"
         if PixelSearch(&Found1, &Found2, (39 / 100) * W, (70 / 100) * H, (61 / 100) * W, H - 40, Color, 0) {
+            return true
+        } else {
+            return false
+        }
+    } else if Target = "WEAPONS" {
+        Color := 0xFA7D17
+        Inset := 55
+        if (W / H >= 0.8) {
+            CW := 0.8 * H
+            CH := 0.4 * H
+        } else {
+            CW := W
+            CH := W / 2
+        }
+        containerX := (W - CW) / 2
+        containerY := (H - Inset - CH) / 2 + Inset
+        X2 := containerX + 0.9676 * CW
+        Y2 := containerY + 0.125 * CH
+        X1 := X2 - 100
+        if PixelSearch(&Found1, &Found2, X1, Y2, X2, Y2, Color, 0) {
             return true
         } else {
             return false
